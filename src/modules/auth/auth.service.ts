@@ -16,6 +16,11 @@ const registerUser = async (data: Prisma.UserCreateInput) => {
     throw new Error("User already exists");
   }
 
+  // Ensure password is provided
+  if (!password) {
+    throw new Error("Password is required");
+  }
+
   // Hash password
   const hashedPassword = await bcrypt.hash(password, 10);
 

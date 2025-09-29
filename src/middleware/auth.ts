@@ -11,8 +11,9 @@ export function auth(requiredRole: string | null = null) {
 
     try {
       const payload = jwt.verify(token, process.env.JWT_SECRET!) as {
-        id: string;
+        id: number;
         role: string;
+        email?: string;
       };
       req.user = payload; 
 

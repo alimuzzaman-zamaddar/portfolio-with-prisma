@@ -14,7 +14,7 @@ const register = async (req: Request, res: Response) => {
       user: newUser,
     });
   } catch (error) {
-    return res.status(400).json({ message: error.message });
+    return res.status(400).json({ message: error instanceof Error ? error.message : "Registration failed" });
   }
 };
 
@@ -28,14 +28,21 @@ const login = async (req: Request, res: Response) => {
 
     return res.status(200).json({ token, user });
   } catch (error) {
-    return res.status(400).json({ message: error.message });
+    return res.status(400).json({ message: error instanceof Error ? error.message : "Login failed" });
   }
 };
 
 // Get current user profile
 const getProfile = async (req: Request, res: Response) => {
   try {
-    const user = await AuthService.getCurrentUser(req.user?.id);
+    if (!req.user?.id) {
+      return res.status(401).json({
+        success: false,
+        message: "User not authenticated",
+      });
+    }
+
+    const user = await AuthService.getCurrentUser(req.user.id);
 
     return res.status(200).json({
       success: true,

@@ -1,6 +1,5 @@
-// src/types/express.d.ts
+// Global type declarations for Express Request interface extension
 
-// Augment the Request type from Express to include the user property
 declare global {
   namespace Express {
     interface Request {
@@ -12,3 +11,5 @@ declare global {
     }
   }
 }
+
+export {};

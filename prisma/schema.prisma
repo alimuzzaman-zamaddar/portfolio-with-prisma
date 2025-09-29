@@ -18,32 +18,61 @@ model User {
   name       String
   email      String     @unique
   password   String?
-  role       Role       @default(USER)
-  phone String @default("N/A")
+  role       Role       @default(OWNER)
+  phone      String?
   picture    String?
+  bio        String?
+  location   String?
+  website    String?
+  github     String?
+  linkedin   String?
+  twitter    String?
   status     UserStatus @default(ACTIVE)
   isVerified Boolean    @default(false)
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
   posts      Post[]
+  projects   Project[]
 }
 
 model Post {
-  id         Int      @id @default(autoincrement())
-  title      String
-  content    String
-  thumbnail  String?
-  isFeatured Boolean  @default(false)
-  tags       String[]
-  views      Int      @default(0)
-  authorId   Int
-  author     User     @relation(fields: [authorId], references: [id])
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  title       String
+  slug        String   @unique
+  content     String
+  excerpt     String?
+  thumbnail   String?
+  isFeatured  Boolean  @default(false)
+  isPublished Boolean  @default(true)
+  tags        String[]
+  views       Int      @default(0)
+  authorId    Int
+  author      User     @relation(fields: [authorId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Project {
+  id          Int      @id @default(autoincrement())
+  title       String
+  slug        String   @unique
+  description String
+  content     String?
+  thumbnail   String?
+  liveUrl     String?
+  githubUrl   String?
+  techStack   String[]
+  isFeatured  Boolean  @default(false)
+  isPublished Boolean  @default(true)
+  order       Int      @default(0)
+  authorId    Int
+  author      User     @relation(fields: [authorId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 enum Role {
-  SUPER_ADMIN
+  OWNER
   ADMIN
   USER
 }
@@ -51,5 +80,5 @@ enum Role {
 enum UserStatus {
   ACTIVE
   INACTIVE
-  BLOCK
+  BLOCKED
 }

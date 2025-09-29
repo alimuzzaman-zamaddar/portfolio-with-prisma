@@ -1,18 +1,29 @@
 {
-  "name": "next-blog",
+  "name": "portfolio-backend",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:reset": "prisma migrate reset --force",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma studio",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "Next Level Web Development",
+  "keywords": [
+    "portfolio",
+    "blog",
+    "express",
+    "prisma",
+    "typescript"
+  ],
+  "author": "Portfolio Owner",
   "license": "ISC",
   "type": "commonjs",
-  "description": "",
+  "description": "Backend API for portfolio website with blog management and project showcase",
   "dependencies": {
     "@prisma/client": "^6.16.2",
     "bcrypt": "^6.0.0",
@@ -20,8 +31,11 @@
     "compression": "^1.8.1",
     "cors": "^2.8.5",
     "express": "^5.1.0",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0",
     "http": "^0.0.1-security",
     "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
     "ts-node-dev": "^2.0.0"
   },
   "devDependencies": {
@@ -29,6 +43,7 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/morgan": "^1.9.9",
     "@types/node": "^24.5.2",
     "dotenv": "^17.2.2",
     "prisma": "^6.16.2",

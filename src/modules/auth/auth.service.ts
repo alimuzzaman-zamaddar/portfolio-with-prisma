@@ -1,22 +1,49 @@
-import { prisma } from "../../config/db";
-import { Prisma, User } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { prisma } from "../../config/db";
+import { Prisma } from "@prisma/client";
 
-const loginWithEmailAndPassword = async ({
-  email,
-  password,
-}: {
-  email: string;
-  password: string | null; // Allow password to be null
-}) => {
-  if (!password) {
-    throw new Error("Password is required");
+// Service for user registration
+const registerUser = async (data: Prisma.UserCreateInput) => {
+  const { name, email, password } = data;
+
+  // Check if user already exists
+  const existingUser = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (existingUser) {
+    throw new Error("User already exists");
   }
 
-  const user = await prisma.user.findUnique({
-    where: {
+  // Hash password
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  // Create new user in the database
+  const newUser = await prisma.user.create({
+    data: {
+      name,
       email,
+      password: hashedPassword,
+      role: "USER", // Default role is USER
+    },
+  });
+
+  return newUser;
+};
+
+// Service for logging in a user
+const loginUser = async (email: string, password: string) => {
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      status: true,
+      isVerified: true,
+      password: true,
     },
   });
 
@@ -24,11 +51,16 @@ const loginWithEmailAndPassword = async ({
     throw new Error("Invalid credentials");
   }
 
-  // After null check, TypeScript now knows password is not null
-  const passwordString: string = password; // Cast to string explicitly
+  if (!user.password) {
+    throw new Error("Invalid credentials");
+  }
 
-  // Use bcrypt to compare the password, and ensure it's a valid string
-  const isPasswordValid = await bcrypt.compare(passwordString, user.password);
+  if (user.status === "INACTIVE" || user.status === "BLOCKED") {
+    throw new Error("Account is inactive or blocked");
+  }
+
+  // Compare the password with the hashed password stored in the database
+  const isPasswordValid = await bcrypt.compare(password, user.password);
 
   if (!isPasswordValid) {
     throw new Error("Invalid credentials");
@@ -36,34 +68,87 @@ const loginWithEmailAndPassword = async ({
 
   // Generate JWT token
   const token = jwt.sign(
-    { id: user.id, role: user.role },
+    {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    },
     process.env.JWT_SECRET!,
     { expiresIn: "7d" }
   );
 
-  return { token, user };
+  // Remove password from user object before returning
+  const { password: _, ...userWithoutPassword } = user;
+
+  return { token, user: userWithoutPassword };
 };
 
-// Google authentication
-const authWithGoogle = async (data: Prisma.UserCreateInput) => {
-  let user = await prisma.user.findUnique({
-    where: {
-      email: data.email,
+// Service for verifying JWT token
+const verifyToken = async (token: string) => {
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET!) as {
+      id: number;
+      email: string;
+      role: string;
+    };
+
+    // Check if user still exists and is active
+    const user = await prisma.user.findUnique({
+      where: { id: payload.id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        status: true,
+        isVerified: true,
+      },
+    });
+
+    if (!user || user.status !== "ACTIVE") {
+      throw new Error("User not found or inactive");
+    }
+
+    return { user, payload };
+  } catch (error) {
+    throw new Error("Invalid token");
+  }
+};
+
+// Service for getting current user profile
+const getCurrentUser = async (userId: number) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      phone: true,
+      picture: true,
+      bio: true,
+      location: true,
+      website: true,
+      github: true,
+      linkedin: true,
+      twitter: true,
+      status: true,
+      isVerified: true,
+      createdAt: true,
+      updatedAt: true,
     },
   });
 
   if (!user) {
-    // Create new user with the Google data
-    user = await prisma.user.create({
-      data,
-    });
+    throw new Error("User not found");
   }
 
-  // Return user and optionally generate token if needed
   return user;
 };
 
 export const AuthService = {
-  loginWithEmailAndPassword,
-  authWithGoogle,
+  registerUser,
+  loginUser,
+  verifyToken,
+  getCurrentUser,
 };

@@ -1,61 +1,264 @@
 import { Request, Response } from "express";
 import { PostService } from "./post.service";
 
-
+// Create a new post (owner only)
 const createPost = async (req: Request, res: Response) => {
+  const {
+    title,
+    content,
+    slug,
+    excerpt,
+    thumbnail,
+    isFeatured,
+    isPublished,
+    tags,
+  } = req.body;
+
+  if (!title || !content || !slug) {
+    return res.status(400).json({
+      success: false,
+      message: "Title, content, and slug are required",
+    });
+  }
+
   try {
-    const result = await PostService.createPost(req.body);
-    res.status(201).json(result);
+    const post = await PostService.createPost({
+      title,
+      content,
+      slug,
+      excerpt,
+      thumbnail,
+      isFeatured: isFeatured || false,
+      isPublished: isPublished !== false,
+      tags: tags || [],
+      author: {
+        connect: { id: req.user?.id },
+      },
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Post created successfully",
+      data: post,
+    });
   } catch (error) {
-    res.status(500).send(error);
+    console.error("Error creating post:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error creating post",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
+// Get all posts
 const getAllPosts = async (req: Request, res: Response) => {
   try {
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 10;
-    const search = (req.query.search as string) || "";
-    const isFeatured = req.query.isFeatured
-      ? req.query.isFeatured === "true"
-      : undefined;
-    const tags = req.query.tags ? (req.query.tags as string).split(",") : [];
-
-    const result = await PostService.getAllPosts({
-      page,
-      limit,
+    const {
+      page = 1,
+      limit = 10,
       search,
       isFeatured,
       tags,
+      isPublished = "true",
+    } = req.query;
+
+    const result = await PostService.getAllPosts({
+      page: Number(page),
+      limit: Number(limit),
+      search: search as string,
+      isFeatured:
+        isFeatured === "true"
+          ? true
+          : isFeatured === "false"
+          ? false
+          : undefined,
+      tags: tags
+        ? Array.isArray(tags)
+          ? (tags as string[])
+          : [tags as string]
+        : undefined,
+      isPublished: isPublished === "true",
     });
-    res.json(result);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch posts", details: err });
+
+    return res.status(200).json({
+      success: true,
+      message: "Posts retrieved successfully",
+      ...result,
+    });
+  } catch (error) {
+    console.error("Error fetching posts:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching posts",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
+// Get post by ID
 const getPostById = async (req: Request, res: Response) => {
-  const post = await PostService.getPostById(Number(req.params.id));
-  if (!post) return res.status(404).json({ error: "Post not found" });
-  res.json(post);
-};
+  const { id } = req.params;
 
-const updatePost = async (req: Request, res: Response) => {
-  const post = await PostService.updatePost(Number(req.params.id), req.body);
-  res.json(post);
-};
-
-const deletePost = async (req: Request, res: Response) => {
-  await PostService.deletePost(Number(req.params.id));
-  res.json({ message: "Post deleted" });
-};
-
-const getBlogStat = async (req: Request, res: Response) => {
   try {
-    const result = await PostService.getBlogStat();
-    res.json(result);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch stats", details: err });
+    const post = await PostService.getPostById(Number(id));
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Post retrieved successfully",
+      data: post,
+    });
+  } catch (error) {
+    console.error("Error fetching post:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching post",
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
+// Get post by slug
+const getPostBySlug = async (req: Request, res: Response) => {
+  const { slug } = req.params;
+
+  try {
+    const post = await PostService.getPostBySlug(slug);
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Post retrieved successfully",
+      data: post,
+    });
+  } catch (error) {
+    console.error("Error fetching post:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching post",
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
+// Update a post (owner only)
+const updatePost = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const updateData = req.body;
+
+  try {
+    const updatedPost = await PostService.updatePost(Number(id), updateData);
+
+    return res.status(200).json({
+      success: true,
+      message: "Post updated successfully",
+      data: updatedPost,
+    });
+  } catch (error) {
+    console.error("Error updating post:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error updating post",
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
+// Delete a post (owner only)
+const deletePost = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    await PostService.deletePost(Number(id));
+
+    return res.status(200).json({
+      success: true,
+      message: "Post deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting post:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error deleting post",
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
+// Get featured posts (public)
+const getFeaturedPosts = async (req: Request, res: Response) => {
+  try {
+    const { limit = 6 } = req.query;
+
+    const posts = await PostService.getFeaturedPosts(Number(limit));
+
+    return res.status(200).json({
+      success: true,
+      message: "Featured posts retrieved successfully",
+      data: posts,
+    });
+  } catch (error) {
+    console.error("Error fetching featured posts:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching featured posts",
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
+// Get recent posts (public)
+const getRecentPosts = async (req: Request, res: Response) => {
+  try {
+    const { limit = 5 } = req.query;
+
+    const posts = await PostService.getRecentPosts(Number(limit));
+
+    return res.status(200).json({
+      success: true,
+      message: "Recent posts retrieved successfully",
+      data: posts,
+    });
+  } catch (error) {
+    console.error("Error fetching recent posts:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching recent posts",
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
+// Get blog statistics (owner only)
+const getBlogStats = async (req: Request, res: Response) => {
+  try {
+    const stats = await PostService.getBlogStat();
+
+    return res.status(200).json({
+      success: true,
+      message: "Blog statistics retrieved successfully",
+      data: stats,
+    });
+  } catch (error) {
+    console.error("Error fetching blog stats:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching blog statistics",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -63,7 +266,10 @@ export const PostController = {
   createPost,
   getAllPosts,
   getPostById,
+  getPostBySlug,
   updatePost,
   deletePost,
-  getBlogStat,
+  getFeaturedPosts,
+  getRecentPosts,
+  getBlogStats,
 };

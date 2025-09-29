@@ -24,21 +24,25 @@ const getAllPosts = async ({
   search,
   isFeatured,
   tags,
+  isPublished = true,
 }: {
   page?: number;
   limit?: number;
   search?: string;
   isFeatured?: boolean;
   tags?: string[];
+  isPublished?: boolean;
 }) => {
   const skip = (page - 1) * limit;
 
   const where: any = {
+    isPublished,
     AND: [
       search && {
         OR: [
           { title: { contains: search, mode: "insensitive" } },
           { content: { contains: search, mode: "insensitive" } },
+          { excerpt: { contains: search, mode: "insensitive" } },
         ],
       },
       typeof isFeatured === "boolean" && { isFeatured },
@@ -51,7 +55,12 @@ const getAllPosts = async ({
     take: limit,
     where,
     include: {
-      author: true,
+      author: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",
@@ -84,13 +93,59 @@ const getPostById = async (id: number) => {
 
     return await tx.post.findUnique({
       where: { id },
-      include: { author: true },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
   });
 };
 
-const updatePost = async (id: number, data: Partial<any>) => {
-  return prisma.post.update({ where: { id }, data });
+const getPostBySlug = async (slug: string) => {
+  return await prisma.$transaction(async tx => {
+    await tx.post.update({
+      where: { slug },
+      data: {
+        views: {
+          increment: 1,
+        },
+      },
+    });
+
+    return await tx.post.findUnique({
+      where: { slug },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+  });
+};
+
+const updatePost = async (
+  id: number,
+  data: Partial<Prisma.PostUpdateInput>
+) => {
+  return prisma.post.update({
+    where: { id },
+    data,
+    include: {
+      author: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  });
 };
 
 const deletePost = async (id: number) => {
@@ -146,11 +201,55 @@ const getBlogStat = async () => {
   });
 };
 
+const getFeaturedPosts = async (limit: number = 6) => {
+  return await prisma.post.findMany({
+    where: {
+      isFeatured: true,
+      isPublished: true,
+    },
+    include: {
+      author: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: limit,
+  });
+};
+
+const getRecentPosts = async (limit: number = 5) => {
+  return await prisma.post.findMany({
+    where: {
+      isPublished: true,
+    },
+    include: {
+      author: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: limit,
+  });
+};
+
 export const PostService = {
   createPost,
   getAllPosts,
   getPostById,
+  getPostBySlug,
   updatePost,
   deletePost,
   getBlogStat,
+  getFeaturedPosts,
+  getRecentPosts,
 };

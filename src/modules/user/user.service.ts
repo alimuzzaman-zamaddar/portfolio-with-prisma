@@ -50,12 +50,33 @@ const getUserById = async (id: number) => {
   return result;
 };
 
-const updateUser = async (id: number, payload: Partial<User>) => {
+const updateUser = async (
+  id: number,
+  payload: Partial<Prisma.UserUpdateInput>
+) => {
   const result = await prisma.user.update({
     where: {
       id,
     },
     data: payload,
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      picture: true,
+      bio: true,
+      location: true,
+      website: true,
+      github: true,
+      linkedin: true,
+      twitter: true,
+      role: true,
+      status: true,
+      isVerified: true,
+      createdAt: true,
+      updatedAt: true,
+    },
   });
   return result;
 };

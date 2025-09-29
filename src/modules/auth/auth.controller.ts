@@ -1,33 +1,80 @@
 import { Request, Response } from "express";
 import { AuthService } from "./auth.service";
 
-// Login with email and password
-const loginWithEmailAndPassword = async (req: Request, res: Response) => {
+// Register a new user
+const register = async (req: Request, res: Response) => {
+  const { name, email, password } = req.body;
+
   try {
-    const result = await AuthService.loginWithEmailAndPassword(req.body);
-    res.status(200).json(result); // Return the JWT token and user info
+    // Call the service to register the user
+    const newUser = await AuthService.registerUser({ name, email, password });
+
+    return res.status(201).json({
+      message: "User created successfully",
+      user: newUser,
+    });
   } catch (error) {
-    const errorMessage = (error instanceof Error) ? error.message : String(error);
-    res.status(500).send({ message: "Error logging in", error: errorMessage });
+    return res.status(400).json({ message: error.message });
   }
 };
 
-// Google Authentication
-const authWithGoogle = async (req: Request, res: Response) => {
+// Login the user
+const login = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+
   try {
-    const result = await AuthService.authWithGoogle(req.body);
-    res.status(200).json(result); // Return the user info after OAuth
+    // Call the service to log the user in
+    const { token, user } = await AuthService.loginUser(email, password);
+
+    return res.status(200).json({ token, user });
   } catch (error) {
-    res
-      .status(500)
-      .send({
-        message: "Error authenticating with Google",
-        error: error instanceof Error ? error.message : String(error),
-      });
+    return res.status(400).json({ message: error.message });
+  }
+};
+
+// Get current user profile
+const getProfile = async (req: Request, res: Response) => {
+  try {
+    const user = await AuthService.getCurrentUser(req.user?.id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile retrieved successfully",
+      data: user,
+    });
+  } catch (error) {
+    console.error("Error fetching profile:", error);
+    return res.status(500).json({
+      success: false,
+      message:
+        error instanceof Error ? error.message : "Error fetching profile",
+    });
+  }
+};
+
+// Verify token
+const verifyToken = async (req: Request, res: Response) => {
+  try {
+    const { user } = await AuthService.verifyToken(
+      req.headers.authorization?.replace("Bearer ", "") || ""
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Token is valid",
+      data: user,
+    });
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      message: error instanceof Error ? error.message : "Invalid token",
+    });
   }
 };
 
 export const AuthController = {
-  loginWithEmailAndPassword,
-  authWithGoogle,
+  register,
+  login,
+  getProfile,
+  verifyToken,
 };

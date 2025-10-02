@@ -13,13 +13,34 @@ import { dashboardRouter } from "./modules/dashboard/dashboard.routes";
 
 const app = express();
 
-// Security middleware
-app.use(helmet()); // Set security headers
+// CORS configuration (put CORS early to ensure preflights succeed)
+const allowedOrigins = [
+  process.env.FRONTEND_URL || "http://localhost:3000",
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+];
 
-// Rate limiting
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    // Allow server-to-server or tools with no origin
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "Accept"],
+  optionsSuccessStatus: 204,
+};
+
+app.use(cors(corsOptions));
+
+app.use(helmet()); 
+
+
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000, 
+  max: 100, 
   message: {
     success: false,
     message: "Too many requests from this IP, please try again later.",
@@ -28,34 +49,22 @@ const limiter = rateLimit({
 
 app.use(limiter);
 
-// CORS configuration
-app.use(
-  cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+app.use(compression()); 
+app.use(express.json({ limit: "10mb" })); 
+app.use(express.urlencoded({ extended: true, limit: "10mb" })); 
 
-// Other middleware
-app.use(compression()); // Compresses response bodies for faster delivery
-app.use(express.json({ limit: "10mb" })); // Parse incoming JSON requests
-app.use(express.urlencoded({ extended: true, limit: "10mb" })); // Parse URL-encoded bodies
 
-// Logging middleware
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("combined"));
 }
 
-// API Routes
 app.use("/api/auth", authRouter);
 app.use("/api/posts", postRouter);
 app.use("/api/projects", projectRouter);
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/user", userRouter);
 
-// Health check endpoint
+
 app.get("/health", (_req, res) => {
   res.status(200).json({
     success: true,
@@ -65,7 +74,7 @@ app.get("/health", (_req, res) => {
   });
 });
 
-// Default route for testing
+
 app.get("/", (_req, res) => {
   res.status(200).json({
     success: true,
@@ -81,7 +90,7 @@ app.get("/", (_req, res) => {
   });
 });
 
-// Global error handler
+
 app.use(
   (
     err: any,
@@ -99,7 +108,7 @@ app.use(
   }
 );
 
-// 404 Handler
+
 app.use((req, res) => {
   res.status(404).json({
     success: false,

@@ -16,6 +16,7 @@ export function auth(requiredRole: string | null = null) {
         email?: string;
       };
       req.user = payload; 
+      console.log(payload, "payload from auth middleware");
 
       // If the route requires a specific role, check the user's role
       if (requiredRole && payload.role !== requiredRole) {

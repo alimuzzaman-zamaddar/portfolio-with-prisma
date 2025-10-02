@@ -11,8 +11,13 @@
     "db:reset": "prisma migrate reset --force",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "seed": "tsx prisma/seed.ts",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "prisma generate"
   },
+  "prisma": {
+  "seed": "tsx prisma/seed.ts"
+},
   "keywords": [
     "portfolio",
     "blog",
@@ -25,7 +30,7 @@
   "type": "commonjs",
   "description": "Backend API for portfolio website with blog management and project showcase",
   "dependencies": {
-    "@prisma/client": "^6.16.2",
+    "@prisma/client": "^6.16.3",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "compression": "^1.8.1",
@@ -36,7 +41,8 @@
     "http": "^0.0.1-security",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.1",
-    "ts-node-dev": "^2.0.0"
+    "ts-node-dev": "^2.0.0",
+    "zod": "^4.1.11"
   },
   "devDependencies": {
     "@types/compression": "^1.8.1",
@@ -46,7 +52,7 @@
     "@types/morgan": "^1.9.10",
     "@types/node": "^24.5.2",
     "dotenv": "^17.2.2",
-    "prisma": "^6.16.2",
+    "prisma": "^6.16.3",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2"
   }

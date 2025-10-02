@@ -4,20 +4,33 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  const email = process.env.SEED_OWNER_EMAIL || "admin@portfolio.com";
-  const pass = process.env.SEED_OWNER_PASSWORD || "admin123";
-  const name = process.env.SEED_OWNER_NAME || "Portfolio Owner";
+  console.log("🌱 Starting seed...");
 
-  const hashed = await bcrypt.hash(pass, 10);
+  // OWNER credentials from env or defaults
+  const ownerEmail = process.env.SEED_OWNER_EMAIL || "owner@portfolio.com";
+  const ownerPass = process.env.SEED_OWNER_PASSWORD || "owner123";
+  const ownerName = process.env.SEED_OWNER_NAME || "Portfolio Owner";
 
+  // ADMIN credentials
+  const adminEmail = process.env.SEED_ADMIN_EMAIL || "admin@portfolio.com";
+  const adminPass = process.env.SEED_ADMIN_PASSWORD || "admin123";
+  const adminName = process.env.SEED_ADMIN_NAME || "Portfolio Admin";
+
+  // Hash passwords
+  const ownerHashed = await bcrypt.hash(ownerPass, 10);
+  const adminHashed = await bcrypt.hash(adminPass, 10);
+
+  // ---------------------------
+  // Create / update OWNER
+  // ---------------------------
   const owner = await prisma.user.upsert({
-    where: { email },
+    where: { email: ownerEmail },
     update: {},
     create: {
-      email,
-      password: hashed,
+      email: ownerEmail,
+      password: ownerHashed,
+      name: ownerName,
       role: "OWNER",
-      name,
       bio: "Portfolio owner and developer",
       location: "Your Location",
       website: "https://yourwebsite.com",
@@ -27,7 +40,28 @@ async function main() {
     },
   });
 
-  // Create some sample projects
+  console.log(`✅ Seeded OWNER: ${owner.email}`);
+
+  // ---------------------------
+  // Create / update ADMIN
+  // ---------------------------
+  const admin = await prisma.user.upsert({
+    where: { email: adminEmail },
+    update: {},
+    create: {
+      email: adminEmail,
+      password: adminHashed,
+      name: adminName,
+      role: "ADMIN",
+      isVerified: true,
+    },
+  });
+
+  console.log(`✅ Seeded ADMIN: ${admin.email}`);
+
+  // ---------------------------
+  // Sample Projects
+  // ---------------------------
   const sampleProjects = [
     {
       title: "Portfolio Website",
@@ -48,7 +82,7 @@ async function main() {
       slug: "ecommerce-platform",
       description: "Full-stack e-commerce solution with payment integration",
       content:
-        "A complete e-commerce platform with user authentication, product management, and payment processing.",
+        "A complete e-commerce platform with authentication, product management, and payments.",
       techStack: ["React", "Node.js", "Express", "MongoDB", "Stripe"],
       liveUrl: "https://yourstore.com",
       githubUrl: "https://github.com/yourusername/ecommerce",
@@ -65,8 +99,11 @@ async function main() {
       create: project,
     });
   }
+  console.log("✅ Seeded sample projects");
 
-  // Create some sample blog posts
+  // ---------------------------
+  // Sample Blog Posts
+  // ---------------------------
   const samplePosts = [
     {
       title: "Welcome to My Portfolio",
@@ -100,7 +137,15 @@ async function main() {
     });
   }
 
-  console.log("✅ Seeded owner:", email);
-  console.log("✅ Created sample projects and blog posts");
+  console.log("✅ Seeded sample blog posts");
 }
-main().finally(() => prisma.$disconnect());
+
+main()
+  .catch((err) => {
+    console.error("❌ Seed failed:", err);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+    console.log("🌱 Seeding finished.");
+  });

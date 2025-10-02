@@ -158,7 +158,6 @@ const getDashboardStats = async () => {
 
 const getContentOverview = async () => {
   return await prisma.$transaction(async tx => {
-    // Get content counts by month for the last 12 months
     const twelveMonthsAgo = new Date();
     twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
 

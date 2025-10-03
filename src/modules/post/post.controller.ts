@@ -153,7 +153,7 @@ const getPostBySlug = async (req: Request, res: Response) => {
   }
 };
 
-// Update a post (owner only)
+
 const updatePost = async (req: Request, res: Response) => {
   const { id } = req.params;
   const updateData = req.body;

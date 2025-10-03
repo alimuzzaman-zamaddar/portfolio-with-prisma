@@ -93,7 +93,7 @@ async function main() {
       create: project,
     });
   }
-  console.log("✅ Seeded sample projects");
+  console.log(" Seeded sample projects");
 
 
   const samplePosts = [
@@ -129,15 +129,15 @@ async function main() {
     });
   }
 
-  console.log("✅ Seeded sample blog posts");
+  console.log(" Seeded sample blog posts");
 }
 
 main()
   .catch((err) => {
-    console.error("❌ Seed failed:", err);
+    console.error(" Seed failed:", err);
     process.exit(1);
   })
   .finally(async () => {
     await prisma.$disconnect();
-    console.log("🌱 Seeding finished.");
+    console.log(" Seeding finished.");
   });

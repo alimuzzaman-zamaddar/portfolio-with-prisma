@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { ProjectService } from "./project.service";
 
-// Create a new project (owner only)
 const createProject = async (req: Request, res: Response) => {
   const {
     title,
@@ -55,7 +54,6 @@ const createProject = async (req: Request, res: Response) => {
   }
 };
 
-// Get all projects (public)
 const getAllProjects = async (req: Request, res: Response) => {
   try {
     const {
@@ -100,7 +98,6 @@ const getAllProjects = async (req: Request, res: Response) => {
   }
 };
 
-// Get project by ID (public)
 const getProjectById = async (req: Request, res: Response) => {
   const { id } = req.params;
 
@@ -129,7 +126,6 @@ const getProjectById = async (req: Request, res: Response) => {
   }
 };
 
-// Get project by slug (public)
 const getProjectBySlug = async (req: Request, res: Response) => {
   const { slug } = req.params;
 
@@ -158,7 +154,6 @@ const getProjectBySlug = async (req: Request, res: Response) => {
   }
 };
 
-// Update a project (owner only)
 const updateProject = async (req: Request, res: Response) => {
   const { id } = req.params;
   const updateData = req.body;
@@ -184,7 +179,6 @@ const updateProject = async (req: Request, res: Response) => {
   }
 };
 
-// Delete a project (owner only)
 const deleteProject = async (req: Request, res: Response) => {
   const { id } = req.params;
 
@@ -204,8 +198,6 @@ const deleteProject = async (req: Request, res: Response) => {
     });
   }
 };
-
-// Get featured projects (public)
 const getFeaturedProjects = async (req: Request, res: Response) => {
   try {
     const { limit = 6 } = req.query;
@@ -227,7 +219,6 @@ const getFeaturedProjects = async (req: Request, res: Response) => {
   }
 };
 
-// Get project statistics (owner only)
 const getProjectStats = async (req: Request, res: Response) => {
   try {
     const stats = await ProjectService.getProjectStats();

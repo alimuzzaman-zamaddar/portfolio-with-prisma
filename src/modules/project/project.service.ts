@@ -161,7 +161,6 @@ const getProjectStats = async () => {
       },
     });
 
-    // Count unique tech stack items
     const allTechStacks = techStackCount.flatMap(project => project.techStack);
     const uniqueTechStacks = [...new Set(allTechStacks)];
 

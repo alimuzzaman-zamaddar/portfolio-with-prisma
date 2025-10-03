@@ -1,6 +1,4 @@
-// src/types/express.d.ts
-
-// Augment the Request type from Express to include the user property
+y
 declare global {
   namespace Express {
     interface Request {

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { PostService } from "./post.service";
 
-// Create a new post (owner only)
+
 const createPost = async (req: Request, res: Response) => {
   const {
     title,
@@ -51,7 +51,7 @@ const createPost = async (req: Request, res: Response) => {
   }
 };
 
-// Get all posts
+
 const getAllPosts = async (req: Request, res: Response) => {
   try {
     const {
@@ -96,7 +96,6 @@ const getAllPosts = async (req: Request, res: Response) => {
   }
 };
 
-// Get post by ID
 const getPostById = async (req: Request, res: Response) => {
   const { id } = req.params;
 
@@ -125,7 +124,7 @@ const getPostById = async (req: Request, res: Response) => {
   }
 };
 
-// Get post by slug
+
 const getPostBySlug = async (req: Request, res: Response) => {
   const { slug } = req.params;
 

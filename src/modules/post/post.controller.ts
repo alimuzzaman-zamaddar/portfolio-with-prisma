@@ -176,7 +176,7 @@ const updatePost = async (req: Request, res: Response) => {
   }
 };
 
-// Delete a post (owner only)
+
 const deletePost = async (req: Request, res: Response) => {
   const { id } = req.params;
 

@@ -197,7 +197,7 @@ const deletePost = async (req: Request, res: Response) => {
   }
 };
 
-// Get featured posts (public)
+
 const getFeaturedPosts = async (req: Request, res: Response) => {
   try {
     const { limit = 6 } = req.query;

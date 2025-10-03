@@ -1,12 +1,11 @@
 import { Request, Response } from "express";
 import { AuthService } from "./auth.service";
 
-// Register a new user
+
 const register = async (req: Request, res: Response) => {
   const { name, email, password } = req.body;
 
   try {
-    // Call the service to register the user
     const newUser = await AuthService.registerUser({ name, email, password });
 
     return res.status(201).json({
@@ -18,12 +17,12 @@ const register = async (req: Request, res: Response) => {
   }
 };
 
-// Login the user
+
 const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   try {
-    // Call the service to log the user in
+
     const { token, user } = await AuthService.loginUser(email, password);
 
     return res.status(200).json({ token, user });
@@ -32,7 +31,7 @@ const login = async (req: Request, res: Response) => {
   }
 };
 
-// Get current user profile
+
 const getProfile = async (req: Request, res: Response) => {
   try {
     if (!req.user?.id) {
@@ -59,7 +58,7 @@ const getProfile = async (req: Request, res: Response) => {
   }
 };
 
-// Verify token
+
 const verifyToken = async (req: Request, res: Response) => {
   try {
     const { user } = await AuthService.verifyToken(

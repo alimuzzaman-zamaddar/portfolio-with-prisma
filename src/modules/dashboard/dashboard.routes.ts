@@ -4,8 +4,7 @@ import { auth } from "../../middleware/auth";
 
 const router = express.Router();
 
-// Owner-Only Routes (Authenticated)
-router.get("/stats", auth("OWNER"), DashboardController.getDashboardStats); // Get dashboard statistics
-router.get("/overview", auth("OWNER"), DashboardController.getContentOverview); // Get content overview
+router.get("/stats", auth("OWNER"), DashboardController.getDashboardStats); 
+router.get("/overview", auth("OWNER"), DashboardController.getContentOverview);
 
 export const dashboardRouter = router;

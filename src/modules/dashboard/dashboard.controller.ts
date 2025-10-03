@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { DashboardService } from "./dashboard.service";
 
-// Get dashboard statistics (owner only)
 const getDashboardStats = async (req: Request, res: Response) => {
   try {
     const stats = await DashboardService.getDashboardStats();

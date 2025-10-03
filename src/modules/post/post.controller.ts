@@ -218,8 +218,6 @@ const getFeaturedPosts = async (req: Request, res: Response) => {
     });
   }
 };
-
-// Get recent posts (public)
 const getRecentPosts = async (req: Request, res: Response) => {
   try {
     const { limit = 5 } = req.query;
@@ -240,8 +238,6 @@ const getRecentPosts = async (req: Request, res: Response) => {
     });
   }
 };
-
-// Get blog statistics (owner only)
 const getBlogStats = async (req: Request, res: Response) => {
   try {
     const stats = await PostService.getBlogStat();

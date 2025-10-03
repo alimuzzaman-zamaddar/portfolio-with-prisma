@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 
-// Middleware to authenticate and attach the user to the request object
+
 export function auth(requiredRole: string | null = null) {
   return (req: Request, res: Response, next: NextFunction) => {
     const header = req.headers.authorization || "";
@@ -17,8 +17,6 @@ export function auth(requiredRole: string | null = null) {
       };
       req.user = payload; 
       console.log(payload, "payload from auth middleware");
-
-      // If the route requires a specific role, check the user's role
       if (requiredRole && payload.role !== requiredRole) {
         return res.status(403).json({ message: "Forbidden" });
       }

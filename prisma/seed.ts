@@ -11,18 +11,16 @@ async function main() {
   const ownerPass = process.env.SEED_OWNER_PASSWORD || "owner123";
   const ownerName = process.env.SEED_OWNER_NAME || "Portfolio Owner";
 
-  // ADMIN credentials
+
   const adminEmail = process.env.SEED_ADMIN_EMAIL || "admin@portfolio.com";
   const adminPass = process.env.SEED_ADMIN_PASSWORD || "admin123";
   const adminName = process.env.SEED_ADMIN_NAME || "Portfolio Admin";
 
-  // Hash passwords
+
   const ownerHashed = await bcrypt.hash(ownerPass, 10);
   const adminHashed = await bcrypt.hash(adminPass, 10);
 
-  // ---------------------------
-  // Create / update OWNER
-  // ---------------------------
+
   const owner = await prisma.user.upsert({
     where: { email: ownerEmail },
     update: {},
@@ -42,9 +40,7 @@ async function main() {
 
   console.log(`✅ Seeded OWNER: ${owner.email}`);
 
-  // ---------------------------
-  // Create / update ADMIN
-  // ---------------------------
+
   const admin = await prisma.user.upsert({
     where: { email: adminEmail },
     update: {},
@@ -59,9 +55,7 @@ async function main() {
 
   console.log(`✅ Seeded ADMIN: ${admin.email}`);
 
-  // ---------------------------
-  // Sample Projects
-  // ---------------------------
+
   const sampleProjects = [
     {
       title: "Portfolio Website",
@@ -101,9 +95,7 @@ async function main() {
   }
   console.log("✅ Seeded sample projects");
 
-  // ---------------------------
-  // Sample Blog Posts
-  // ---------------------------
+
   const samplePosts = [
     {
       title: "Welcome to My Portfolio",

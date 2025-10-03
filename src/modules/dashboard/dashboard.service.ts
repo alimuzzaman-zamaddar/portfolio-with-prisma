@@ -2,7 +2,7 @@ import { prisma } from "../../config/db";
 
 const getDashboardStats = async () => {
   return await prisma.$transaction(async tx => {
-    // Blog statistics
+
     const blogStats = await tx.post.aggregate({
       _count: true,
       _sum: { views: true },
@@ -21,7 +21,7 @@ const getDashboardStats = async () => {
       where: { isPublished: false },
     });
 
-    // Project statistics
+
     const projectStats = await tx.project.aggregate({
       _count: true,
     });
@@ -38,7 +38,7 @@ const getDashboardStats = async () => {
       where: { isPublished: false },
     });
 
-    // Recent activity
+
     const lastWeek = new Date();
     lastWeek.setDate(lastWeek.getDate() - 7);
 
@@ -54,7 +54,6 @@ const getDashboardStats = async () => {
       },
     });
 
-    // Most popular posts
     const topPosts = await tx.post.findMany({
       where: { isPublished: true },
       orderBy: { views: "desc" },
@@ -68,7 +67,6 @@ const getDashboardStats = async () => {
       },
     });
 
-    // Recent posts and projects
     const latestPosts = await tx.post.findMany({
       orderBy: { createdAt: "desc" },
       take: 5,
@@ -92,8 +90,6 @@ const getDashboardStats = async () => {
         createdAt: true,
       },
     });
-
-    // Tag and tech stack analysis
     const allPosts = await tx.post.findMany({
       select: { tags: true },
     });
@@ -176,8 +172,6 @@ const getContentOverview = async () => {
       },
       _count: true,
     });
-
-    // Get content by status
     const contentByStatus = {
       published: {
         posts: await tx.post.count({ where: { isPublished: true } }),
